@@ -203,8 +203,8 @@
                 const message = JSON.stringify(data);
                 addLog(`モバイルに送信: ${message}`, 'send');
                 
-                if (window.FlutterTest && window.FlutterTest.postMessage) {
-                    window.FlutterTest.postMessage(message);
+                if (FlutterTest && FlutterTest.postMessage) {
+                    FlutterTest.postMessage(message);
                     updateNavigationStatus('送信完了', 'success');
                 } else {
                     addLog('Flutter通信チャンネルが見つかりません', 'error');
@@ -316,7 +316,7 @@
                 refreshToken: "test_refresh_token_67890",
                 userId: "user_test_001"
             };
-            window.setConfig(testAuthData);
+            setConfig(testAuthData);
         }
 
         // 開発用: テストボタンを追加（本番では削除）
