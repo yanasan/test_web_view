@@ -172,7 +172,7 @@
         }
 
         // モバイル → Web: 認証データ受信関数
-        window.setConfig = function(authData) {
+        setConfig = function(authData) {
             try {
                 addLog('モバイルから認証データを受信しました', 'receive');
                 addLog(`受信データ: ${JSON.stringify(authData)}`, 'info');
