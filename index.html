@@ -203,8 +203,8 @@
                 const message = JSON.stringify(data);
                 addLog(`モバイルに送信: ${message}`, 'send');
                 
-                if (window.Flutter && window.Flutter.postMessage) {
-                    window.Flutter.postMessage(message);
+                if (window.FlutterTest && window.FlutterTest.postMessage) {
+                    window.FlutterTest.postMessage(message);
                     updateNavigationStatus('送信完了', 'success');
                 } else {
                     addLog('Flutter通信チャンネルが見つかりません', 'error');
