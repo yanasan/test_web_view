@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Channels Implementation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.init { background-color: #e3f2fd; }
+        .status.success { background-color: #e8f5e8; }
+        .status.error { background-color: #ffebee; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #2196f3;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1976d2;
+        }
+        .response-area {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Channels テスト</h1>
+    
+    <div id="status" class="status">初期化待機中...</div>
+    
+    <div id="controls" style="display: none;">
+        <h2>テストボタン</h2>
+        <button onclick="testAppSubmit()">アプリに移動</button>
+        <button onclick="testWebBrowserSubmit()">ブラウザで開く</button>
+        <button onclick="testCustomSubmit()">カスタムパス</button>
+    </div>
+    
+    <div id="response" class="response-area">
+        <h3>レスポンス:</h3>
+        <pre id="responseContent">まだレスポンスがありません</pre>
+    </div>
+
+    <script>
+        // 認証データチャンネル
+        window.authDataChannel = {
+            setConfig: function(authData) {
+                console.log('認証データを受信:', authData);
+                
+                try {
+                    // ローカルストレージに保存
+                    localStorage.setItem('authData', JSON.stringify(authData));
+                    
+                    // init処理を開始
+                    initWebApplication(authData);
+                    
+                    return {
+                        success: true,
+                        message: '認証データを保存しました'
+                    };
+                } catch (error) {
+                    console.error('認証データ保存エラー:', error);
+                    return {
+                        success: false,
+                        message: '認証データの保存に失敗しました'
+                    };
+                }
+            },
+            
+            getConfig: function() {
+                try {
+                    const authData = localStorage.getItem('authData');
+                    return authData ? JSON.parse(authData) : null;
+                } catch (error) {
+                    console.error('認証データ取得エラー:', error);
+                    return null;
+                }
+            }
+        };
+
+        // モバイルチャンネル
+        window.mobileChannel = {
+            submit: function(options) {
+                console.log('submit呼び出し:', options);
+                
+                const response = {
+                    path: options.path || '/',
+                    type: options.type || 'app',
+                    timestamp: new Date().toISOString(),
+                    success: true
+                };
+                
+                // レスポンスを画面に表示
+                displayResponse(response);
+                
+                // 実際の処理をシミュレート
+                if (options.type === 'app') {
+                    console.log('アプリに移動:', options.path);
+                } else if (options.type === 'webBrowser') {
+                    console.log('ブラウザで開く:', options.path);
+                }
+                
+                return response;
+            }
+        };
+
+        // Web アプリケーションの初期化処理
+        function initWebApplication(authData) {
+            console.log('Web初期化開始:', authData);
+            
+            updateStatus('Web アプリケーションを初期化中...', 'init');
+            
+            // 初期化処理をシミュレート（2秒後に完了）
+            setTimeout(() => {
+                updateStatus(`初期化完了 - ユーザー: ${authData.username}`, 'success');
+                
+                // コントロールを表示
+                document.getElementById('controls').style.display = 'block';
+                
+                console.log('Web初期化完了');
+            }, 2000);
+        }
+
+        // ステータス表示更新
+        function updateStatus(message, type) {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // レスポンス表示
+        function displayResponse(response) {
+            const responseElement = document.getElementById('responseContent');
+            responseElement.textContent = JSON.stringify(response, null, 2);
+        }
+
+        // テスト関数群
+        function testAppSubmit() {
+            window.mobileChannel.submit({
+                path: '/home',
+                type: 'app'
+            });
+        }
+
+        function testWebBrowserSubmit() {
+            window.mobileChannel.submit({
+                path: 'https://example.com',
+                type: 'webBrowser'
+            });
+        }
+
+        function testCustomSubmit() {
+            window.mobileChannel.submit({
+                path: '/custom/path',
+                type: 'app'
+            });
+        }
+
+        // ページ読み込み時の処理
+        window.addEventListener('load', function() {
+            console.log('Web Channels初期化完了');
+            
+            // 既存の認証データがあるかチェック
+            const existingAuthData = window.authDataChannel.getConfig();
+            if (existingAuthData) {
+                console.log('既存の認証データを発見:', existingAuthData);
+                initWebApplication(existingAuthData);
+            } else {
+                updateStatus('認証データ待機中... (Flutter側からsetConfigを呼び出してください)', 'init');
+            }
+        });
+
+        // Flutter側から呼び出すテスト用の関数
+        window.testSetAuthData = function() {
+            const testAuthData = {
+                username: 'testuser',
+                token: 'test-token-123',
+                userId: 1,
+                email: 'test@example.com'
+            };
+            
+            window.authDataChannel.setConfig(testAuthData);
+        };
+    </script>
+
+    <!-- テスト用のFlutter呼び出しボタン -->
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc;">
+        <h3>テスト用 (開発時のみ)</h3>
+        <button onclick="testSetAuthData()" style="background-color: #ff9800;">
+            テスト認証データをセット
+        </button>
+        <p><small>※ 本番ではFlutter側から authDataChannel.setConfig() を呼び出します</small></p>
+    </div>
+</body>
+</html>
