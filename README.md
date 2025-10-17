@@ -1,1 +1,3 @@
 # test_web_view
+
+FlutterのWebViewでWeb側の関数をJavaScriptで呼び出す用のサンプルwebアプリ
